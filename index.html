@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Custom Flappy Bird Pro</title>
+    <!-- Firebase Script Libraries -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+        body {
+            background: #f4f5f7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #333;
+            padding: 20px;
+            overflow: hidden;
+        }
+        .game-container {
+            position: relative;
+            width: 420px;
+            height: 640px;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+            background: #4ec0ca;
+        }
+        canvas {
+            display: block;
+        }
+        
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #fdfdfd;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+            z-index: 10;
+        }
+        .game-overlay {
+            background: rgba(19, 20, 31, 0.9) !important;
+            backdrop-filter: blur(10px);
+            color: white !important;
+        }
+        .hidden { display: none !important; }
+
+        .login-card {
+            width: 100%;
+            text-align: center;
+        }
+        .login-card h2 {
+            font-size: 2rem;
+            color: #1a1a1a;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .login-card p {
+            font-size: 0.95rem;
+            color: #555;
+            margin-bottom: 25px;
+        }
+        .login-card p a {
+            color: #3b71ca;
+            text-decoration: none;
+        }
+
+        .google-btn {
+            width: 100%;
+            padding: 12px;
+            background: #ffffff;
+            border: 1px solid #dadce0;
+            border-radius: 8px;
+            color: #3c4043;
+            font-size: 0.95rem;
+            font-weight: 500;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            transition: background 0.2s;
+            margin-bottom: 20px;
+        }
+        .google-btn:hover {
+            background: #f8f9fa;
+        }
+        .google-btn img {
+            width: 18px;
+            height: 18px;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            color: #70757a;
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #e8eaed;
+        }
+        .divider:not(:empty)::before { margin-right: .5em; }
+        .divider:not(:empty)::after { margin-left: .5em; }
+
+        .form-group {
+            width: 100%;
+            text-align: left;
+            margin-bottom: 18px;
+        }
+        .form-group label {
+            font-size: 0.9rem;
+            color: #202124;
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #dadce0;
+            border-radius: 6px;
+            font-size: 1rem;
+            outline: none;
+            color: #202124;
+        }
+        .form-input:focus {
+            border-color: #3b71ca;
+            box-shadow: 0 0 0 1px #3b71ca;
+        }
+
+        .primary-blue-btn {
+            background: #3b71ca;
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 14px;
+            font-size: 1rem;
+            font-weight: 500;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 10px;
+        }
+        .primary-blue-btn:hover {
+            background: #315fb3;
+        }
+
+        .ui-card { background: #1a1b29; border-radius: 24px; padding: 25px; width: 100%; border: 1px solid rgba(255, 255, 255, 0.08); color: white;}
+        .settings-row { display: flex; gap: 10px; width: 100%; margin-top: 10px; }
+        .btn-sec { background: rgba(255,255,255,0.06); color: white; border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 14px; cursor: pointer;}
+        .btn { background: #ffb703; color: #0f0f1a; border: none; width: 100%; padding: 14px; font-size: 1.1rem; font-weight: 700; border-radius: 18px; cursor: pointer; margin-top: 15px;}
+        
+        .input-group { margin-bottom: 12px; text-align: left; }
+        .input-group label { font-size: 0.85rem; color: #aaa; display: block; margin-bottom: 5px; }
+        .file-wrapper { position: relative; background: #13141f; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 10px 12px; font-size: 0.85rem; color: #ddd; overflow: hidden;}
+        .file-wrapper input { position: absolute; left: 0; top: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+        .attempt-badge { float: right; background: rgba(76, 201, 240, 0.2); color: #4cc9f0; padding: 2px 6px; border-radius: 6px; font-size: 0.75rem; }
+        .score-row { display: flex; background: #13141f; border-radius: 16px; padding: 15px; margin-bottom: 20px; gap: 10px; }
+        .score-block { flex: 1; } .score-lbl { font-size: 0.75rem; color: #888; text-transform: uppercase; } .score-val { font-size: 1.8rem; font-weight: 700; color: #fff; }
+
+        .live-score { position: absolute; top: 25px; width: 100%; text-align: center; font-size: 2.8rem; font-weight: 800; color: white; z-index: 5; pointer-events: none; }
+        .gear-icon { position: absolute; top: 25px; right: 25px; font-size: 1.3rem; cursor: pointer; z-index: 6; background: rgba(26, 27, 41, 0.6); padding: 10px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.1); }
+        .pay-input { width: 100%; padding: 12px; background: #13141f; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: white; text-align: center; }
+        .qr-placeholder { width: 150px; height: 150px; background: white; margin: 15px auto; border-radius: 12px; padding: 8px; } .qr-placeholder img { width: 100%; height: 100%; }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <div class="live-score id-live-score hidden">0</div>
+        <div class="gear-icon id-gear-btn hidden">⚙️</div>
+
+        <canvas id="gameCanvas" width="420" height="640"></canvas>
+
+        <!-- EXACT REPLICA LOGIN OVERLAY -->
+        <div class="overlay id-login-screen">
+            <div class="login-card">
+                <h2>Welcome back</h2>
+                <p>Don't have an account? <a href="#" onclick="alert('Firebase sign up configuration placeholder');">Sign up</a>.</p>
+                
+                <button class="google-btn" id="googleLoginBtn">
+                    <img src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/web-24dp/copy_of_24dp.png" alt="G">
+                    Continue with Google
+                </button>
+                
+                <div class="divider">Or continue with username/email</div>
+                
+                <div class="form-group">
+                    <label>Username or email address</label>
+                    <input type="text" id="emailInput" class="form-input">
+                </div>
+                
+                <div class="form-group">
+                    <label>Password <span style="float:right; color:#3b71ca; font-size:0.85rem; cursor:pointer;" onclick="alert('Password toggle layer activated');">Show</span></label>
+                    <input type="password" id="passInput" class="form-input">
+                </div>
+                
+                <div style="text-align:left; margin-bottom: 20px;">
+                    <a href="#" style="color:#3b71ca; font-size:0.9rem; text-decoration:none;">Forgot your password?</a>
+                </div>
+                
+                <button class="primary-blue-btn" id="normalLoginBtn">Sign in</button>
+            </div>
+        </div>
+
+        <!-- SETTINGS PANEL -->
+        <div class="overlay game-overlay id-settings-screen hidden">
+            <div class="ui-card">
+                <h1 style="color:white; font-size:1.8rem; margin-bottom:15px;">Game Menu</h1>
+                <div class="score-row" style="text-align:left;">
+                    <div class="score-block">
+                        <div class="score-lbl">Active Session</div>
+                        <div class="score-val" id="playerDisplay" style="font-size:1rem; color:#4cc9f0; margin-top:4px; word-break:break-all;">Guest User</div>
+                    </div>
+                </div>
+                <button class="btn id-mute-btn" style="background:#4cc9f0; margin-top:10px;">🔊 Music: ON</button>
+                <div class="settings-row">
+                    <button class="btn-sec id-goto-assets">🎨 Change Things</button>
+                    <button class="btn-sec id-close-settings" style="flex:0.6;">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ASSETS DASHBOARD -->
+        <div class="overlay game-overlay id-assets-screen hidden">
+            <div class="ui-card">
+                <h1 style="color:white; font-size:1.8rem; margin-bottom:15px;">Custom Assets</h1>
+                <div class="input-group">
+                    <label>1. Bird Face Image <span class="attempt-badge id-count-badge">Left: 2</span></label>
+                    <div class="file-wrapper">📁 <span id="lbl-bird">Choose Photo...</span>
+                        <input type="file" id="birdInput" accept="image/*">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>2. Custom Background</label>
+                    <div class="file-wrapper">🖼️ <span id="lbl-bg">Choose Background...</span>
+                        <input type="file" id="bgInput" accept="image/*">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>3. Background Music</label>
+                    <div class="file-wrapper">🎵 <span id="lbl-bgm">Choose Audio track...</span>
+                        <input type="file" id="bgmInput" accept="audio/*">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>4. Game Over Sound Effect</label>
+                    <div class="file-wrapper">💥 <span id="lbl-sfx">Choose Crash sound...</span>
+                        <input type="file" id="sfxInput" accept="audio/*">
+                    </div>
+                </div>
+                <button class="btn id-save-assets-btn" style="background:#2ec4b6; color:white; border:none; border-radius:12px; margin-top:10px;">Apply Changes</button>
+            </div>
+        </div>
+
+        <!-- START SCREEN -->
+        <div class="overlay game-overlay id-start-screen hidden">
+            <h1 style="font-size:2.5rem; color:white; text-shadow:0 4px 10px rgba(0,0,0,0.5);">Flappy Pro</h1>
+            <p style="color:white; font-size:1.1rem; font-weight:600; margin-top:40px;">TAP TO JUMP</p>
+        </div>
+
+        <!-- GAME OVER SCREEN -->
+        <div class="overlay game-overlay id-game-over-screen hidden">
+            <div class="ui-card" style="max-width: 320px;">
+                <div style="font-size: 2.5rem; margin-bottom: 5px;">💥</div>
+                <h1 style="font-size:1.8rem; color:white;">Game Over</h1>
+                <div class="score-row">
+                    <div class="score-block">
+                        <div class="score-lbl">Score</div>
+                        <div class="score-val" id="finalScore">0</div>
+                    </div>
+                    <div class="score-block" style="border-left: 1px solid rgba(255,255,255,0.1)">
+                        <div class="score-lbl">Best</div>
+                        <div class="score-val" id="highScore">0</div>
+                    </div>
+                </div>
+                <button class="btn id-restart-btn" style="margin-top:0;">↩ Try Again</button>
+            </div>
+        </div>
+
+        <!-- PAYWALL OVERLAY -->
+        <div class="overlay game-overlay id-paywall-screen hidden">
+            <div class="ui-card">
+                <h1 style="font-size: 1.5rem; color: #ff8a5c;">Premium Limit Reached!</h1>
+                <p style="font-size: 0.85rem; color: #bbb; margin-bottom: 10px;">Free 2 Face changes exhausted. Scan QR to pay ₹10 & type Secret Unlock Code.</p>
+                <div class="qr-placeholder">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=6263672413@ptsbi" alt="Paytm QR">
+                </div>
+                <input type="text" class="pay-input" id="secretCodeInput" placeholder="ENTER SECRET CODE" style="margin-bottom:10px;">
+                <button class="btn id-unlock-btn" style="background:#4cc9f0; margin-top:5px;">Verify & Unlock</button>
+                <button class="btn id-close-paywall" style="background:transparent; border:1px solid #444; color:#aaa; margin-top:8px; font-size:0.9rem; padding:8px;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // YOUR EXPLICIT LIVE FIREBASE CONFIGURATION REGENERATED
+        const firebaseConfig = {
+            apiKey: "AIzaSyDvSMzZ0IpxNwGfbMq0qlKxIIusjvTkti0",
+            authDomain: "flappybirdpro-4d6eb.firebaseapp.com",
+            projectId: "flappybirdpro-4d6eb",
+            storageBucket: "flappybirdpro-4d6eb.firebasestorage.app",
+            messagingSenderId: "412730127106",
+            appId: "1:412730127106:web:bd1219a3cecc8a3776481b"
+        };
+        
+        // Initializing Firebase App Core
+        firebase.initializeApp(firebaseConfig);
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const loginScreen = document.querySelector('.id-login-screen');
+        const settingsScreen = document.querySelector('.id-settings-screen');
+        const assetsScreen = document.querySelector('.id-assets-screen');
+        const startScreen = document.querySelector('.id-start-screen');
+        const gameOverScreen = document.querySelector('.id-game-over-screen');
+        const paywallScreen = document.querySelector('.id-paywall-screen');
+        const liveScoreText = document.querySelector('.id-live-score');
+        const countBadge = document.querySelector('.id-count-badge');
+        
+        const googleLoginBtn = document.getElementById('googleLoginBtn');
+        const normalLoginBtn = document.getElementById('normalLoginBtn');
+        const muteBtn = document.querySelector('.id-mute-btn');
+        const gotoAssetsBtn = document.querySelector('.id-goto-assets');
+        const closeSettingsBtn = document.querySelector('.id-close-settings');
+        const saveAssetsBtn = document.querySelector('.id-save-assets-btn');
+        const restartBtn = document.querySelector('.id-restart-btn');
+        const gearBtn = document.querySelector('.id-gear-btn');
+        const unlockBtn = document.querySelector('.id-unlock-btn');
+        const closePaywall = document.querySelector('.id-close-paywall');
+
+        const emailInput = document.getElementById('emailInput');
+        const passInput = document.getElementById('passInput');
+        const birdInput = document.getElementById('birdInput');
+        const bgInput = document.getElementById('bgInput');
+        const bgmInput = document.getElementById('bgmInput');
+        const sfxInput = document.getElementById('sfxInput');
+        const secretCodeInput = document.getElementById('secretCodeInput');
+        const playerDisplay = document.getElementById('playerDisplay');
+
+        let gameState = 'LOGIN';
+        let score = 0; let hScore = localStorage.getItem('flappy_high_p') || 0;
+        const gravity = 0.24; const jumpStrength = -5.2;
+        let isMuted = false; let customBirdImg = null; let customBgImg = null; let customBgm = null; let customSfx = null; let bgX = 0;
+
+        let faceChangeCount = parseInt(localStorage.getItem('face_change_count')) || 0;
+        let isPremiumUnlocked = localStorage.getItem('premium_unlocked') === 'true';
+        const SECRET_CODE = "FLAPPY777";
+
+        function updateBadge() {
+            if (isPremiumUnlocked) {
+                countBadge.textContent = "PRO UNLOCKED"; countBadge.style.background = "rgba(255,209,102,0.2)"; countBadge.style.color = "#ffd166";
+            } else {
+                let left = 2 - faceChangeCount; countBadge.textContent = `Left: ${left < 0 ? 0 : left}`;
+            }
+        }
+        updateBadge();
+
+        function finishLogin(userIdentifier) {
+            playerDisplay.textContent = userIdentifier;
+            loginScreen.classList.add('hidden');
+            gearBtn.classList.remove('hidden');
+            gameState = 'START';
+            startScreen.classList.remove('hidden');
+            bird.y = 240; bird.velocity = 0; pipes = [];
+        }
+
+        // Live Authentication Connectors
+        googleLoginBtn.addEventListener('click', () => {
+            let provider = new firebase.auth.GoogleAuthProvider();
+            firebase.auth().signInWithPopup(provider).then((result) => {
+                finishLogin(result.user.email);
+            }).catch((err) => {
+                alert("Login Error: " + err.message);
+            });
+        });
+
+        normalLoginBtn.addEventListener('click', () => {
+            let email = emailInput.value.trim();
+            let password = passInput.value.trim();
+            if(email.length < 5 || password.length < 4) { 
+                alert("Please input proper authentication credentials!"); 
+                return; 
+            }
+            
+            // Checking if user exists, else signing up automatically
+            firebase.auth().signInWithEmailAndPassword(email, password)
+                .then((res) => finishLogin(res.user.email))
+                .catch((err) => {
+                    if (err.code === 'auth/user-not-found') {
+                        firebase.auth().createUserWithEmailAndPassword(email, password)
+                            .then((res) => finishLogin(res.user.email))
+                            .catch((e) => alert("Registration Error: " + e.message));
+                    } else {
+                        alert("Auth Error: " + err.message);
+                    }
+                });
+        });
+
+        gearBtn.addEventListener('click', () => {
+            if (customBgm) customBgm.pause();
+            gameState = 'SETTINGS';
+            settingsScreen.classList.remove('hidden'); assetsScreen.classList.add('hidden'); startScreen.classList.add('hidden'); gameOverScreen.classList.add('hidden'); liveScoreText.classList.add('hidden');
+        });
+
+        muteBtn.addEventListener('click', () => {
+            isMuted = !isMuted;
+            if(isMuted) { muteBtn.textContent = "🔇 Music: MUTED"; muteBtn.style.background = "#ff8a5c"; if(customBgm) customBgm.pause(); }
+            else { muteBtn.textContent = "🔊 Music: ON"; muteBtn.style.background = "#4cc9f0"; }
+        });
+        gotoAssetsBtn.addEventListener('click', () => { settingsScreen.classList.add('hidden'); assetsScreen.classList.remove('hidden'); });
+        closeSettingsBtn.addEventListener('click', () => { settingsScreen.classList.add('hidden'); resetToStart(); });
+        saveAssetsBtn.addEventListener('click', () => { assetsScreen.classList.add('hidden'); resetToStart(); });
+        
+        function resetToStart() {
+            gameState = 'START'; startScreen.classList.remove('hidden'); bird.y = 240; bird.velocity = 0; pipes = [];
+        }
+
+        birdInput.addEventListener('change', (e) => {
+            if(!e.target.files[0]) return;
+            if (!isPremiumUnlocked && faceChangeCount >= 2) { paywallScreen.classList.remove('hidden'); birdInput.value = ""; return; }
+            customBirdImg = new Image(); customBirdImg.src = URL.createObjectURL(e.target.files[0]);
+            document.getElementById('lbl-bird').textContent = e.target.files[0].name.substring(0, 12) + "...";
+            if (!isPremiumUnlocked) { faceChangeCount++; localStorage.setItem('face_change_count', faceChangeCount); updateBadge(); }
+        });
+        bgInput.addEventListener('change', (e) => {
+            if(e.target.files[0]) { customBgImg = new Image(); customBgImg.src = URL.createObjectURL(e.target.files[0]); document.getElementById('lbl-bg').textContent = e.target.files[0].name.substring(0, 12) + "..."; }
+        });
+        bgmInput.addEventListener('change', (e) => {
+            if(e.target.files[0]) { if (customBgm) customBgm.pause(); customBgm = new Audio(URL.createObjectURL(e.target.files[0])); customBgm.loop = true; document.getElementById('lbl-bgm').textContent = e.target.files[0].name.substring(0, 12) + "..."; }
+        });
+        sfxInput.addEventListener('change', (e) => {
+            if(e.target.files[0]) { customSfx = new Audio(URL.createObjectURL(e.target.files[0])); document.getElementById('lbl-sfx').textContent = e.target.files[0].name.substring(0, 12) + "..."; }
+        });
+
+        unlockBtn.addEventListener('click', () => {
+            if (secretCodeInput.value.trim() === SECRET_CODE) { isPremiumUnlocked = true; localStorage.setItem('premium_unlocked', 'true'); updateBadge(); paywallScreen.classList.add('hidden'); alert("🎉 Success! Unlimited face updates unlocked."); }
+            else { alert("❌ Invalid Secret Code."); }
+        });
+        closePaywall.addEventListener('click', () => paywallScreen.classList.add('hidden'));
+
+        let bird = {
+            x: 85, y: 240, radius: 18, velocity: 0,
+            draw() {
+                ctx.save();
+                if (customBirdImg) {
+                    ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.closePath(); ctx.clip();
+                    ctx.drawImage(customBirdImg, this.x - this.radius, this.y - this.radius, this.radius * 2, this.radius * 2);
+                } else {
+                    ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fillStyle = '#ffb703'; ctx.fill(); ctx.closePath();
+                }
+                ctx.restore();
+            },
+            update() {
+                this.velocity += gravity; this.y += this.velocity;
+                if (this.y + this.radius >= canvas.height - 45) { this.y = canvas.height - 45 - this.radius; endGame(); }
+                if (this.y - this.radius <= 0) { this.y = this.radius; this.velocity = 0; }
+            },
+            jump() { this.velocity = jumpStrength; }
+        };
+
+        let pipes = []; const pipeWidth = 62; const pipeGap = 145; const pipeSpeed = 2.1;
+        function spawnPipe() {
+            let minH = 60, maxH = canvas.height - pipeGap - 120; let topH = Math.floor(Math.random() * (maxH - minH + 1)) + minH;
+            pipes.push({ x: canvas.width, top: topH, bottom: canvas.height - topH - pipeGap, passed: false });
+        }
+
+        function triggerJump() {
+            if (gameState === 'START') {
+                gameState = 'PLAYING'; startScreen.classList.add('hidden'); liveScoreText.classList.remove('hidden'); liveScoreText.textContent = '0'; score = 0; spawnPipe();
+                if (customBgm && !isMuted) { customBgm.currentTime = 0; customBgm.play().catch(() => {}); }
+            } else if (gameState === 'PLAYING') { bird.jump(); }
+        }
+
+        window.addEventListener('keydown', (e) => { if(e.code === 'Space') triggerJump(); });
+        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); triggerJump(); });
+        canvas.addEventListener('mousedown', (e) => { if(gameState!=='SETTINGS' && gameState!=='LOGIN') triggerJump(); });
+        restartBtn.addEventListener('click', () => { gameOverScreen.classList.add('hidden'); resetToStart(); });
+
+        function endGame() {
+            gameState = 'GAMEOVER'; if (customBgm) customBgm.pause(); if (customSfx && !isMuted) { customSfx.currentTime = 0; customSfx.play(); }
+            if (score > hScore) { hScore = score; localStorage.setItem('flappy_high_p', hScore); }
+            document.getElementById('finalScore').textContent = score; document.getElementById('highScore').textContent = hScore;
+            gameOverScreen.classList.remove('hidden'); liveScoreText.classList.add('hidden');
+        }
+
+        function renderLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (customBgImg) {
+                if (gameState === 'PLAYING') bgX -= 0.6; if (bgX <= -canvas.width) bgX = 0;
+                ctx.drawImage(customBgImg, bgX, 0, canvas.width, canvas.height); ctx.drawImage(customBgImg, bgX + canvas.width, 0, canvas.width, canvas.height);
+            } else {
+                let gradient = ctx.createLinearGradient(0, 0, 0, canvas.height); gradient.addColorStop(0, '#3a86ff'); gradient.addColorStop(1, '#8338ec');
+                ctx.fillStyle = gradient; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+
+            if (gameState === 'PLAYING') {
+                bird.update(); if (pipes.length > 0 && pipes[pipes.length - 1].x < canvas.width - 210) spawnPipe();
+                for (let i = pipes.length - 1; i >= 0; i--) {
+                    pipes[i].x -= pipeSpeed; ctx.fillStyle = '#2ec4b6'; ctx.fillRect(pipes[i].x, 0, pipeWidth, pipes[i].top);
+                    let botY = canvas.height - pipes[i].bottom; ctx.fillRect(pipes[i].x, botY, pipeWidth, pipes[i].bottom);
+                    if (bird.x + bird.radius > pipes[i].x && bird.x - bird.radius < pipes[i].x + pipeWidth) {
+                        if (bird.y - bird.radius < pipes[i].top || bird.y + bird.radius > botY) endGame();
+                    }
+                    if (!pipes[i].passed && pipes[i].x + pipeWidth < bird.x) { pipes[i].passed = true; score++; liveScoreText.textContent = score; }
+                    if (pipes[i].x + pipeWidth < 0) pipes.splice(i, 1);
+                }
+            } else if (gameState !== 'LOGIN') {
+                for (let p of pipes) { ctx.fillStyle = '#2ec4b6'; ctx.fillRect(p.x, 0, pipeWidth, p.top); ctx.fillRect(p.x, canvas.height - p.bottom, pipeWidth, p.bottom); }
+            }
+            ctx.fillStyle = '#1a1b29'; ctx.fillRect(0, canvas.height - 45, canvas.width, 45);
+            ctx.fillStyle = '#ff007f'; ctx.fillRect(0, canvas.height - 45, canvas.width, 4);
+            if(gameState !== 'LOGIN') bird.draw();
+            requestAnimationFrame(renderLoop);
+        }
+        renderLoop();
+    </script>
+</body>
+</html>
