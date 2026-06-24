@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Premium Custom Flappy Bird Pro</title>
-    <!-- Firebase Script Libraries -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <style>
@@ -88,7 +87,6 @@
 </head>
 <body>
 
-    <!-- SETUP SCREEN FOR UPLOADS -->
     <div id="setup-screen">
         <h2>Flappy Customizer</h2>
         
@@ -103,19 +101,18 @@
         </div>
 
         <div class="input-group">
-            <label>3. Jump Sound (Audio):</label>
-            <input type="file" id="jump-sound-input" accept="audio/*">
+            <label>3. Background Music (Loop Audio):</label>
+            <input type="file" id="bg-music-input" accept="audio/*">
         </div>
 
         <div class="input-group">
-            <label>4. Background Music (Audio):</label>
-            <input type="file" id="bg-music-input" accept="audio/*">
+            <label>4. Game Over Sound (SFX Audio):</label>
+            <input type="file" id="gameover-sound-input" accept="audio/*">
         </div>
 
         <button id="start-btn">Start Game 🚀</button>
     </div>
 
-    <!-- GAME CANVAS CONTAINER -->
     <div id="game-container">
         <canvas id="gameCanvas" width="400" height="600"></canvas>
     </div>
@@ -126,8 +123,33 @@
 
         let birdImg = new Image();
         let bgImg = new Image();
-        let jumpSound = null;
         let bgMusic = null;
+        let gameOverSound = null;
+
+        // Permanent Default Pop Sound (Web Audio API generated)
+        function playPopSound() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                
+                osc.type = 'sine';
+                // Quick frequency slide up creates the "pop" feel
+                osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.08);
+                
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.08);
+            } catch (e) {
+                console.log("Audio Context block bypass");
+            }
+        }
 
         // Default yellow circle bird if nothing is uploaded
         birdImg.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><circle cx="20" cy="20" r="18" fill="yellow"/></svg>';
@@ -143,17 +165,17 @@
         document.getElementById('start-btn').addEventListener('click', () => {
             const birdFile = document.getElementById('bird-input').files[0];
             const bgFile = document.getElementById('bg-input').files[0];
-            const jumpFile = document.getElementById('jump-sound-input').files[0];
             const musicFile = document.getElementById('bg-music-input').files[0];
+            const gameOverFile = document.getElementById('gameover-sound-input').files[0];
 
             if (birdFile) birdImg.src = URL.createObjectURL(birdFile);
             if (bgFile) bgImg.src = URL.createObjectURL(bgFile);
-            if (jumpFile) jumpSound = new Audio(URL.createObjectURL(jumpFile));
+            if (gameOverFile) gameOverSound = new Audio(URL.createObjectURL(gameOverFile));
             if (musicFile) {
                 bgMusic = new Audio(URL.createObjectURL(musicFile));
                 bgMusic.loop = true;
                 bgMusic.volume = 0.4;
-                bgMusic.play().catch(e => console.log("Audio waiting for touch"));
+                bgMusic.play().catch(e => console.log("Audio waiting for user click"));
             }
 
             document.getElementById('setup-screen').style.display = 'none';
@@ -238,6 +260,13 @@
         function gameOver() {
             gameActive = false;
             if (bgMusic) bgMusic.pause();
+            
+            // Play Custom Game Over sound if uploaded
+            if (gameOverSound) {
+                gameOverSound.currentTime = 0;
+                gameOverSound.play().catch(e => {});
+            }
+
             alert(`Game Over! Score: ${score}`);
             document.getElementById('setup-screen').style.display = 'block';
             document.getElementById('game-container').style.display = 'none';
@@ -246,18 +275,16 @@
         function jumpAction() {
             if (gameActive) {
                 bird.velocity = bird.lift;
-                // Play audio instantly on touch
-                if (jumpSound) {
-                    jumpSound.currentTime = 0;
-                    jumpSound.play().catch(e => {});
-                }
+                // Instant Permanent Pop Sound on Click/Tap
+                playPopSound();
+                
                 if (bgMusic && bgMusic.paused) {
                     bgMusic.play().catch(e => {});
                 }
             }
         }
 
-        // Universal Pointer Event for Both PC (Mouse) & Phone (Touch)
+        // Event Listeners for Controls
         window.addEventListener('keydown', (e) => { if (e.code === 'Space') jumpAction(); });
         canvas.addEventListener('pointerdown', (e) => {
             e.preventDefault();
