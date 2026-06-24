@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MyFace Flapper</title>
-    <!-- Firebase Script Libraries -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <style>
@@ -179,7 +178,6 @@
 </head>
 <body>
 
-    <!-- SETUP SCREEN FOR UPLOADS -->
     <div id="setup-screen">
         <h2>Flappy Customizer</h2>
         
@@ -206,14 +204,13 @@
         <button id="start-btn" class="btn-primary">Start Game 🚀</button>
     </div>
 
-    <!-- GAME CANVAS CONTAINER -->
     <div id="game-container">
         <div id="gameover-screen">
             <h1>Game Over</h1>
             <div id="final-score">Score: 0</div>
             <button class="menu-btn btn-restart" id="btn-restart">🔄 Restart</button>
             <button class="menu-btn btn-home" id="btn-home">🏠 Home</button>
-            <button class="menu-btn btn-settings" id="btn-settings">⚙ *Customizer*</button>
+            <button class="menu-btn btn-settings" id="btn-settings">⚙ Customizer</button>
         </div>
 
         <div id="countdown-overlay">
@@ -455,6 +452,14 @@
             document.getElementById('setup-screen').style.display = 'block';
         }
 
+        // ADDED FIX: Core Jump Action logic
+        function jumpAction() {
+            if (gameActive && !inCountdown) {
+                bird.velocity = bird.lift;
+                playPopSound();
+            }
+        }
+
         document.getElementById('btn-restart').addEventListener('click', () => {
             stopGameOverSound();
             startWithCountdown();
@@ -463,6 +468,7 @@
         document.getElementById('btn-home').addEventListener('click', goToHome);
         document.getElementById('btn-settings').addEventListener('click', goToHome); 
 
+        // Touch & Key listeners linked to jumpAction
         window.addEventListener('keydown', (e) => { if (e.code === 'Space') jumpAction(); });
         canvas.addEventListener('pointerdown', (e) => {
             e.preventDefault();
