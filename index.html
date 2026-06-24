@@ -3,214 +3,236 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyFace Flapper</title>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <title>MyFace Flapper - The Game Crafters</title>
+    <!-- Core External Plugins for Graphics & Special FX -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
+        :root {
+            --primary: #4ec0ca;
+            --neon-green: #39ff14;
+            --neon-pink: #ff007f;
+            --neon-blue: #00f0ff;
+            --glass: rgba(20, 20, 35, 0.75);
+            --border: rgba(255, 255, 255, 0.12);
+        }
         * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            user-select: none;
-            -webkit-user-select: none;
+            box-sizing: border-box; margin: 0; padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            user-select: none; -webkit-user-select: none;
         }
         body {
-            background: linear-gradient(135deg, #11111e 0%, #1e1e2f 100%);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            color: #fff;
-            overflow: hidden;
+            background: radial-gradient(circle at center, #141426 0%, #080811 100%);
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; color: #fff; overflow: hidden;
         }
-        #setup-screen {
-            background: rgba(42, 42, 64, 0.95);
-            padding: 35px;
-            border-radius: 24px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
-            text-align: center;
-            width: 90%;
-            max-width: 380px;
-            z-index: 10;
-            border: 2px solid #4ec0ca;
-            backdrop-filter: blur(10px);
+
+        /* Glassmorphism Panel Standard */
+        .panel {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 24px 50px rgba(0,0,0,0.6), inset 0 1px 2px rgba(255,255,255,0.15);
+            width: 92%; max-width: 410px; padding: 30px; text-align: center; z-index: 10;
         }
-        h2 { 
-            font-size: 26px;
-            margin-bottom: 25px; 
-            color: #4ec0ca;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            text-shadow: 0 0 10px rgba(78,192,202,0.3);
-        }
-        .input-group {
-            margin-bottom: 18px;
-            text-align: left;
-        }
-        label {
-            display: block;
-            margin-bottom: 6px;
-            font-size: 13px;
-            font-weight: 600;
-            color: #b3b3cc;
-        }
-        input[type="file"] {
-            width: 100%;
-            padding: 10px;
-            background: #161623;
-            border: 1px solid #3d3d5c;
-            border-radius: 10px;
-            color: #fff;
-            cursor: pointer;
-            font-size: 12px;
-            transition: 0.3s;
-        }
-        input[type="file"]:hover {
-            border-color: #4ec0ca;
-        }
-        .btn-primary {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(90deg, #4ec0ca, #3daab3);
-            border: none;
-            border-radius: 12px;
-            color: #fff;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 15px;
-            box-shadow: 0 5px 15px rgba(78,192,202,0.4);
-            transition: 0.2s ease;
-        }
-        .btn-primary:hover { 
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(78,192,202,0.6);
-        }
-        #game-container {
-            position: relative;
-            width: 100%;
-            max-width: 400px;
-            height: 85vh;
-            max-height: 600px;
-            border-radius: 16px;
-            overflow: hidden;
-            display: none;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.7);
-            border: 4px solid #2a2a40;
-        }
-        canvas {
-            width: 100%;
-            height: 100%;
-            background: #70c5ce;
-            display: block;
-        }
-        #gameover-screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(16, 16, 26, 0.85);
-            backdrop-filter: blur(6px);
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 5;
-        }
-        #gameover-screen h1 {
-            color: #ff4d4d;
-            font-size: 36px;
-            margin-bottom: 5px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            text-shadow: 0 0 15px rgba(255,77,77,0.5);
-        }
-        #final-score {
-            font-size: 18px;
-            color: #fff;
-            margin-bottom: 30px;
-        }
-        .menu-btn {
-            width: 220px;
-            padding: 16px;
-            margin: 12px;
-            border: none;
-            border-radius: 12px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s;
-            color: #fff;
-        }
-        .btn-restart { background: #4ec0ca; box-shadow: 0 4px 10px rgba(78,192,202,0.3); }
-        .btn-home { background: #4e5cca; box-shadow: 0 4px 10px rgba(78,92,202,0.3); }
-        .btn-settings { background: #5c667a; box-shadow: 0 4px 10px rgba(92,102,122,0.3); }
+
+        /* 1. TOP MAIN MENU VIEW */
+        #main-menu { display: flex; flex-direction: column; align-items: center; }
+        .branding h4 { font-size: 11px; color: var(--neon-blue); letter-spacing: 5px; text-transform: uppercase; margin-bottom: 4px; font-weight: 800; }
+        .branding h1 { font-size: 30px; font-weight: 900; margin-bottom: 25px; text-shadow: 0 0 15px rgba(0,240,255,0.4); letter-spacing: -0.5px; }
         
-        .menu-btn:hover { transform: scale(1.05); }
+        .center-preview {
+            width: 100%; padding: 20px; background: rgba(0,0,0,0.2); border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 25px;
+            position: relative; overflow: hidden; height: 160px; display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        #menu-bg-preview { position: absolute; top:0; left:0; width:100%; height:100%; object-fit: cover; z-index: 1; opacity: 0.4; display:none; }
+        #menu-face-container {
+            width: 75px; height: 75px; border-radius: 50%; border: 3px solid var(--primary); z-index: 2; overflow: hidden; background: #1a1a2e;
+            box-shadow: 0 0 15px var(--primary); display: flex; justify-content: center; align-items: center; margin-bottom: 10px; transition: transform 0.3s;
+        }
+        #menu-face-preview { width:100%; height:100%; object-fit: cover; }
+        .fly-text { z-index: 2; font-size: 15px; font-weight: 700; color: #fff; letter-spacing: 1px; text-transform: uppercase; animation: pulse 1.5s infinite; }
+
+        .action-btn {
+            width: 100%; padding: 15px; margin: 8px 0; border: none; border-radius: 14px; font-size: 16px; font-weight: bold; cursor: pointer;
+            transition: all 0.2s ease; display: flex; justify-content: center; align-items: center; gap: 10px; color: #fff;
+        }
+        .btn-play { background: linear-gradient(90deg, #4ec0ca, #1da1ad); box-shadow: 0 5px 15px rgba(78,192,202,0.4); }
+        .btn-play:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(78,192,202,0.6); }
+        .btn-cust { background: linear-gradient(135deg, #7b2cbf, #5a189a); border: 1px solid rgba(255,255,255,0.1); }
+        .btn-lead { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); }
+        .btn-lead:hover { background: rgba(255,255,255,0.12); }
+
+        /* 2. CUSTOMIZER VIEW CONTROL */
+        #customizer-view { display: none; }
+        .tabs { display: flex; gap: 4px; margin-bottom: 20px; background: rgba(0,0,0,0.3); padding: 5px; border-radius: 12px; }
+        .tab-trigger { flex: 1; padding: 10px 5px; font-size: 12px; background: transparent; border: none; color: #888; cursor: pointer; font-weight: 700; transition: 0.2s; text-transform: uppercase; }
+        .tab-trigger.active { background: #fff; color: #000; border-radius: 9px; }
+        .tab-panel { display: none; text-align: left; background: rgba(0,0,0,0.2); padding: 18px; border-radius: 16px; margin-bottom: 20px; min-height: 180px; }
+        .tab-panel.active { display: block; }
+        
+        label { display: block; margin-bottom: 6px; font-size: 12px; font-weight: 700; color: #a2a2c2; text-transform: uppercase; letter-spacing: 0.5px; }
+        input[type="file"], select, input[type="range"] {
+            width: 100%; padding: 11px; background: #0c0c14; border: 1px solid #2d2d44; border-radius: 10px; color: #fff; font-size: 13px; margin-bottom: 14px; transition: 0.2s;
+        }
+        input[type="file"]:hover, select:hover { border-color: var(--primary); }
+        .slider-group { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+
+        /* 3. HARDCORE GAME VIEWPORT CONTAINER */
+        #game-container {
+            position: relative; width: 100%; max-width: 400px; height: 85vh; max-height: 600px; border-radius: 24px; overflow: hidden; display: none; border: 4px solid #212135; box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+        }
+        canvas { width: 100%; height: 100%; display: block; background: #70c5ce; }
+
+        /* 4. INSTAGRAM SIZE SOCIAL READY GAME OVER DASHBOARD */
+        #gameover-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(180deg, rgba(10,10,18,0.95) 0%, rgba(5,5,10,0.98) 100%);
+            display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 5; padding: 20px;
+        }
+        /* Story Capture Wrapper */
+        #story-capture-area {
+            width: 100%; display: flex; flex-direction: column; align-items: center; padding: 20px 10px; border-radius: 20px; background: rgba(255,255,255,0.02); margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.04);
+        }
+        #gameover-screen h2 { font-size: 34px; font-weight: 900; text-transform: uppercase; color: var(--neon-pink); text-shadow: 0 0 20px rgba(255,0,127,0.6); margin-bottom: 2px; }
+        .rank-badge { background: linear-gradient(90deg, #ffd700, #ffa500); color: #000; padding: 5px 16px; font-weight: 900; border-radius: 25px; font-size: 11px; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 0 10px rgba(255,215,0,0.3); }
+        #roast-box { color: #ffcc00; font-style: italic; font-size: 14px; margin-bottom: 20px; max-width: 85%; text-align: center; font-weight: 700; min-height: 40px; }
+        
+        .btn-restart { background: linear-gradient(90deg, var(--neon-green), #24b507); color: #000; font-weight: 800; box-shadow: 0 4px 15px rgba(57,255,20,0.3); }
+        .btn-whatsapp { background: #25d366; font-weight: 700; }
+        
+        /* 5. PAYWALL SUBSCRIPTION LOCKOUT PANEL */
+        #paywall-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(6,6,12,0.96); z-index: 100; display: none; flex-direction: column; justify-content: center; align-items: center; padding: 25px; text-align: center;
+        }
+        .paywall-card {
+            background: linear-gradient(145deg, #1e1730 0%, #0d0a14 100%); border: 2px solid #ffd700; padding: 35px 25px; border-radius: 24px; box-shadow: 0 0 40px rgba(255,215,0,0.25);
+        }
+        .paywall-card h2 { color: #ffd700; font-size: 25px; font-weight: 900; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+        .paywall-card p { font-size: 13px; color: #ccccdd; margin-bottom: 22px; line-height: 1.5; }
+        .pricing-tier { font-size: 38px; font-weight: 900; color: #fff; margin-bottom: 22px; text-shadow: 0 0 10px rgba(255,255,255,0.2); }
 
         #countdown-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.4);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 6;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 6; backdrop-filter: blur(4px);
         }
-        #countdown-text {
-            font-size: 90px;
-            font-weight: 900;
-            color: #fff;
-            text-shadow: 0 0 20px rgba(255,255,255,0.6);
-            animation: popScale 0.8s ease infinite;
-        }
-        @keyframes popScale {
-            0% { transform: scale(0.5); opacity: 0; }
-            50% { transform: scale(1.2); opacity: 1; }
-            100% { transform: scale(1); opacity: 0; }
-        }
+        #countdown-text { font-size: 100px; font-weight: 900; text-shadow: 0 0 25px rgba(255,255,255,0.5); }
+
+        @keyframes pulse { 0% { opacity:0.6; transform:scale(0.98); } 50% { opacity:1; transform:scale(1.02); } 100% { opacity:0.6; transform:scale(0.98); } }
     </style>
 </head>
 <body>
 
-    <div id="setup-screen">
-        <h2>Flappy Customizer</h2>
-        
-        <div class="input-group">
-            <label>1. Bird Face (Image):</label>
-            <input type="file" id="bird-input" accept="image/*">
+    <!-- 5-LIMIT FREE PREMIUM PAYWALL ENGINE -->
+    <div id="paywall-screen">
+        <div class="paywall-card">
+            <h2>🔒 Premium Limit Reached</h2>
+            <p>Aapne 5 baar free customization limits cross kar di hai. Game Crafters Premium Pack lekar unlock kijiye absolute capabilities!</p>
+            <div class="pricing-tier">₹199 <span style="font-size:14px;color:#aaa;font-weight:normal;">/ Viral Pack Engine</span></div>
+            <button class="action-btn btn-play" onclick="alert('Payment Engine Integration Active on Build Mode')">💳 Pay & Unlock Instantly</button>
+            <button class="action-btn" style="background:#222; margin-top:8px;" onclick="document.getElementById('paywall-screen').style.display='none'">Bypass (Testing Mode)</button>
         </div>
-
-        <div class="input-group">
-            <label>2. Custom Background (Image):</label>
-            <input type="file" id="bg-input" accept="image/*">
-        </div>
-
-        <div class="input-group">
-            <label>3. Background Music (Loop Audio):</label>
-            <input type="file" id="bg-music-input" accept="audio/*">
-        </div>
-
-        <div class="input-group">
-            <label>4. Game Over Sound (SFX Audio):</label>
-            <input type="file" id="gameover-sound-input" accept="audio/*">
-        </div>
-
-        <button id="start-btn" class="btn-primary">Start Game 🚀</button>
     </div>
 
+    <!-- MAIN MENU LAYER PANEL -->
+    <div id="main-menu" class="panel">
+        <div class="branding">
+            <h4>The Game Crafters</h4>
+            <h1>MyFace Flapper</h1>
+        </div>
+        <div class="center-preview">
+            <img id="menu-bg-preview" src="" alt="bg">
+            <div id="menu-face-container">
+                <div id="menu-face-preview">👦</div>
+            </div>
+            <div class="fly-text">Ready to Fly?</div>
+        </div>
+        <button class="action-btn btn-play" id="launch-game-btn">🟢 PLAY NOW</button>
+        <button class="action-btn btn-cust" id="open-customizer-btn">🎨 CUSTOMIZE LAYOUT</button>
+        <button class="action-btn btn-lead" onclick="alert('Leaderboard coming soon!')">🏆 LEADERBOARD</button>
+    </div>
+
+    <!-- ENGINE CUSTOMIZER PANEL LAYER -->
+    <div id="customizer-view" class="panel">
+        <div class="branding" style="text-align:center;">
+            <h1>Customizer Studio</h1>
+        </div>
+        <div class="tabs">
+            <button class="tab-trigger active" onclick="toggleStudioTab('face')">Face</button>
+            <button class="tab-trigger" onclick="toggleStudioTab('theme')">Theme</button>
+            <button class="tab-trigger" onclick="toggleStudioTab('pipes')">Pipes</button>
+            <button class="tab-trigger" onclick="toggleStudioTab('audio')">Audio</button>
+        </div>
+
+        <!-- Face Layer Tab Content -->
+        <div id="tab-face" class="tab-panel active">
+            <label>Upload Avatar Face Image:</label>
+            <input type="file" id="inp-face" accept="image/*" onchange="incrementPaywallCounter()">
+            <label>Face Live Transforms:</label>
+            <div class="slider-group">
+                <span>Scale</span>
+                <input type="range" id="scale-slider" min="0.5" max="2" step="0.1" value="1">
+            </div>
+            <div class="slider-group">
+                <span>Rotate</span>
+                <input type="range" id="rotate-slider" min="0" max="360" step="5" value="0">
+            </div>
+        </div>
+
+        <!-- Background Layer Tab Content -->
+        <div id="tab-theme" class="tab-panel">
+            <label>Select Aesthetic Theme Pack:</label>
+            <select id="sel-theme" onchange="incrementPaywallCounter()">
+                <option value="default">Classic Retro Skyline</option>
+                <option value="cyberpunk">🌃 Cyberpunk City Glow</option>
+                <option value="space">🚀 Cosmic Deep Space</option>
+                <option value="wedding">🇮🇳 Desi Shadi Blast</option>
+                <option value="meme">😂 Full Meme Pack Chaos</option>
+            </select>
+            <label>Or Upload Custom Wallpaper:</label>
+            <input type="file" id="inp-bg" accept="image/*" onchange="incrementPaywallCounter()">
+        </div>
+
+        <!-- Pipes Layer Tab Content -->
+        <div id="tab-pipes" class="tab-panel">
+            <label>Obstacle Skin Variant:</label>
+            <select id="sel-pipes" onchange="incrementPaywallCounter()">
+                <option value="green">Classic 3D Green Cylinder</option>
+                <option value="money">Money Stack Pipes 💰</option>
+                <option value="beer">Chill Beer Bottles 🍺</option>
+                <option value="meme">Meme Face Blockers 😆</option>
+            </select>
+        </div>
+
+        <!-- Audio Layer Tab Content -->
+        <div id="tab-audio" class="tab-panel">
+            <label>Meme SFX Integration Pack:</label>
+            <select id="sel-sfx-pack">
+                <option value="classic">Standard Functional Arcade</option>
+                <option value="vine">Vine Boom / Bruh Mashup 😂</option>
+                <option value="desi">Desi Laughs & Tracks Pack</option>
+            </select>
+            <label>Upload Custom Stream Audio:</label>
+            <input type="file" id="inp-audio" accept="audio/*" onchange="incrementPaywallCounter()">
+        </div>
+
+        <button class="action-btn btn-play" id="save-studio-btn" style="background:var(--neon-blue); color:#000;">💾 SAVE & RETURN</button>
+    </div>
+
+    <!-- CORE HARDWARE CANVAS GRAPHICS LAYER -->
     <div id="game-container">
+        <!-- Social Dashboard Game Over Screen Layer -->
         <div id="gameover-screen">
-            <h1>Game Over</h1>
-            <div id="final-score">Score: 0</div>
-            <button class="menu-btn btn-restart" id="btn-restart">🔄 Restart</button>
-            <button class="menu-btn btn-home" id="btn-home">🏠 Home</button>
-            <button class="menu-btn btn-settings" id="btn-settings">⚙ Customizer</button>
+            <div id="story-capture-area">
+                <h2 id="go-banner">Game Over</h2>
+                <div id="rank-badge" class="rank-badge">🐣 Beginner Bird</div>
+                <div id="final-score" style="font-size:24px; font-weight:900; margin-bottom:5px;">Score: 0</div>
+                <div id="roast-box">"Arey bhai udna tha, girna nahi!"</div>
+            </div>
+            
+            <button class="action-btn btn-restart" id="btn-restart">🔄 FLY AGAIN</button>
+            <button class="action-btn btn-whatsapp" id="btn-share">📤 WHATSAPP CHALLENGE</button>
+            <button class="action-btn" style="background:#222;" id="btn-back-menu">🏠 MAIN MENU</button>
         </div>
 
         <div id="countdown-overlay">
@@ -226,254 +248,265 @@
 
         let birdImg = new Image();
         let bgImg = new Image();
-        let bgMusic = null;
-        let gameOverSound = null;
+        let streamMusic = null;
 
-        function playPopSound() {
+        // Configuration Transformations State
+        let transformScale = 1;
+        let transformRotate = 0;
+
+        // Paywall Logic Counter Tracking
+        let payloadChangesCount = parseInt(localStorage.getItem('g_paywall_clicks_2026')) || 0;
+        function incrementPaywallCounter() {
+            payloadChangesCount++;
+            localStorage.setItem('g_paywall_clicks_2026', payloadChangesCount);
+
+            // Asset Upgrades Realtime Processing Menu Updates
+            const f = document.getElementById('inp-face').files[0];
+            if(f) document.getElementById('menu-face-preview').innerHTML = `<img src="${URL.createObjectURL(f)}" id="menu-face-preview">`;
+            const b = document.getElementById('inp-bg').files[0];
+            if(b) {
+                const url = URL.createObjectURL(b);
+                document.getElementById('menu-bg-preview').src = url;
+                document.getElementById('menu-bg-preview').style.display = 'block';
+            }
+
+            if(payloadChangesCount > 5) {
+                document.getElementById('paywall-screen').style.display = 'flex';
+            }
+        }
+
+        function toggleStudioTab(tab) {
+            document.querySelectorAll('.tab-trigger').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(pan => pan.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('tab-' + tab).classList.add('active');
+        }
+
+        // Procedural Smart Audio FX Module for Jumps/Clears
+        function playEngineSfx(mode) {
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(400, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.08);
-                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.08);
-            } catch (e) {}
-        }
+                const volume = audioCtx.createGain();
+                osc.connect(volume); volume.connect(audioCtx.destination);
 
-        function playGoSound() {
-            try {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const now = audioCtx.currentTime;
-                [523.25, 659.25, 783.99, 1046.50].forEach((freq, index) => {
-                    const osc = audioCtx.createOscillator();
-                    const gain = audioCtx.createGain();
+                if (mode === 'jump') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(420, audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(850, audioCtx.currentTime + 0.08);
+                    volume.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    volume.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+                    osc.start(); osc.stop(audioCtx.currentTime + 0.08);
+                } else if (mode === 'go') {
                     osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(freq, now + index * 0.06);
-                    gain.gain.setValueAtTime(0.15, now + index * 0.06);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + index * 0.06 + 0.2);
-                    osc.connect(gain);
-                    gain.connect(audioCtx.destination);
-                    osc.start(now + index * 0.06);
-                    osc.stop(now + index * 0.06 + 0.2);
-                });
-            } catch (e) {}
+                    osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+                    osc.frequency.setValueAtTime(900, audioCtx.currentTime + 0.08);
+                    volume.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                    osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+                }
+            } catch(e) {}
         }
 
         birdImg.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><circle cx="20" cy="20" r="18" fill="yellow"/></svg>';
 
-        let bird = { x: 50, y: 150, width: 40, height: 40, gravity: 0.4, lift: -8, velocity: 0 };
+        let bird = { x: 60, y: 150, width: 42, height: 42, gravity: 0.42, lift: -8.5, velocity: 0 };
         let pipes = [];
-        let pipeWidth = 65; 
-        let pipeGap = 160;
-        let frameCount = 0;
-        let score = 0;
-        let gameActive = false;
-        let inCountdown = false;
+        let pipeWidth = 65; let pipeGap = 165;
+        let frameCount = 0; let score = 0;
+        let gameActive = false; let inCountdown = false;
 
-        document.getElementById('start-btn').addEventListener('click', () => {
-            const birdFile = document.getElementById('bird-input').files[0];
-            const bgFile = document.getElementById('bg-input').files[0];
-            const musicFile = document.getElementById('bg-music-input').files[0];
-            const gameOverFile = document.getElementById('gameover-sound-input').files[0];
+        const roastsList = [
+            "Arey bhai udna tha, girna nahi! 💀",
+            "Skill issue detected big time! 😂",
+            "Mummy bhi isse better khelegi! 😆",
+            "Pipes se dushmani hai kya bhai? 🛑",
+            "Tumse na ho payega, wapas jao! 🤫"
+        ];
 
-            if (birdFile) birdImg.src = URL.createObjectURL(birdFile);
-            if (bgFile) bgImg.src = URL.createObjectURL(bgFile);
-            if (gameOverFile) gameOverSound = new Audio(URL.createObjectURL(gameOverFile));
-            if (musicFile) {
-                bgMusic = new Audio(URL.createObjectURL(musicFile));
-                bgMusic.loop = true;
-                bgMusic.volume = 0.4;
-            }
+        const aestheticsTheme = { default: '#70c5ce', cyberpunk: '#0a0a1a', space: '#02020a', wedding: '#6b0c22', meme: '#ffeb3b' };
 
-            document.getElementById('setup-screen').style.display = 'none';
-            document.getElementById('game-container').style.display = 'block';
-            
-            startWithCountdown();
+        // Main Nav Action Setup Triggers
+        document.getElementById('open-customizer-btn').addEventListener('click', () => {
+            document.getElementById('main-menu').style.display = 'none';
+            document.getElementById('customizer-view').style.display = 'block';
         });
 
-        function startWithCountdown() {
+        document.getElementById('save-studio-btn').addEventListener('click', () => {
+            transformScale = parseFloat(document.getElementById('scale-slider').value);
+            transformRotate = parseInt(document.getElementById('rotate-slider').value);
+            document.getElementById('customizer-view').style.display = 'none';
+            document.getElementById('main-menu').style.display = 'block';
+        });
+
+        document.getElementById('launch-game-btn').addEventListener('click', () => {
+            const faceFile = document.getElementById('inp-face').files[0];
+            const bgFile = document.getElementById('inp-bg').files[0];
+            const musicFile = document.getElementById('inp-audio').files[0];
+
+            if (faceFile) birdImg.src = URL.createObjectURL(faceFile);
+            if (bgFile) bgImg.src = URL.createObjectURL(bgFile);
+            if (musicFile) {
+                if(streamMusic) streamMusic.pause();
+                streamMusic = new Audio(URL.createObjectURL(musicFile));
+                streamMusic.loop = true; streamMusic.volume = 0.3;
+            }
+
+            document.getElementById('main-menu').style.display = 'none';
+            document.getElementById('game-container').style.display = 'block';
+            triggerCountdownSequence();
+        });
+
+        function triggerCountdownSequence() {
             document.getElementById('gameover-screen').style.display = 'none';
-            const overlay = document.getElementById('countdown-overlay');
-            const text = document.getElementById('countdown-text');
-            overlay.style.display = 'flex';
+            const screenOverlay = document.getElementById('countdown-overlay');
+            const counterText = document.getElementById('countdown-text');
+            screenOverlay.style.display = 'flex';
             inCountdown = true;
-            resetGame();
+            resetEngineData();
 
-            let count = 3;
-            text.innerText = count;
+            let count = 3; counterText.innerText = count; counterText.style.color = '#ff007f';
 
-            let interval = setInterval(() => {
+            let timer = setInterval(() => {
                 count--;
                 if (count === 0) {
-                    text.innerText = "GO! 🚀";
-                    playGoSound();
-                    if (bgMusic) bgMusic.play().catch(e => {});
+                    counterText.innerText = "GO! 🔥"; counterText.style.color = '#39ff14';
+                    playEngineSfx('go');
+                    if (streamMusic) streamMusic.play().catch(e => {});
                 } else if (count < 0) {
-                    clearInterval(interval);
-                    overlay.style.display = 'none';
-                    inCountdown = false;
-                    gameActive = true;
-                    draw();
+                    clearInterval(timer);
+                    screenOverlay.style.display = 'none';
+                    inCountdown = false; gameActive = true;
+                    drawEngineLoop();
                 } else {
-                    text.innerText = count;
+                    counterText.innerText = count;
                 }
-            }, 900);
+            }, 850);
         }
 
-        function resetGame() {
-            bird.y = 150;
-            bird.velocity = 0;
-            pipes = [];
-            score = 0;
-            frameCount = 0;
+        function resetEngineData() {
+            bird.y = 150; bird.velocity = 0; pipes = []; score = 0; frameCount = 0;
         }
 
-        function drawRetroPipe(x, y, width, height, isTop) {
-            let pipeGrad = ctx.createLinearGradient(x, 0, x + width, 0);
-            pipeGrad.addColorStop(0.0, '#4b7d1a'); 
-            pipeGrad.addColorStop(0.2, '#73bf2e'); 
-            pipeGrad.addColorStop(0.5, '#bfff80'); 
-            pipeGrad.addColorStop(0.8, '#73bf2e'); 
-            pipeGrad.addColorStop(1.0, '#355912'); 
-
-            ctx.fillStyle = pipeGrad;
-            ctx.strokeStyle = '#000';
-            ctx.lineWidth = 2.5;
+        function drawAssetPipe(x, y, width, height) {
+            const currentSkin = document.getElementById('sel-pipes').value;
             
-            ctx.fillRect(x, y, width, height);
-            ctx.strokeRect(x, y, width, height);
-
-            let capWidth = width + 10;
-            let capHeight = 28;
-            let capX = x - 5;
-            let capY = isTop ? (y + height - capHeight) : y;
-
-            let capGrad = ctx.createLinearGradient(capX, 0, capX + capWidth, 0);
-            capGrad.addColorStop(0.0, '#4b7d1a');
-            capGrad.addColorStop(0.2, '#73bf2e');
-            capGrad.addColorStop(0.5, '#bfff80');
-            capGrad.addColorStop(0.8, '#73bf2e');
-            capGrad.addColorStop(1.0, '#355912');
-
-            ctx.fillStyle = capGrad;
-            ctx.fillRect(capX, capY, capWidth, capHeight);
-            ctx.strokeRect(capX, capY, capWidth, capHeight);
+            if (currentSkin === 'money') {
+                ctx.fillStyle = '#2e7d32'; ctx.fillRect(x, y, width, height);
+                ctx.fillStyle = '#fff'; ctx.font = '22px Arial'; ctx.fillText("💵", x + width/2 - 11, y + height/2);
+            } else if (currentSkin === 'beer') {
+                ctx.fillStyle = '#d84315'; ctx.fillRect(x, y, width, height);
+                ctx.fillStyle = '#fff'; ctx.font = '22px Arial'; ctx.fillText("🍺", x + width/2 - 11, y + height/2);
+            } else if (currentSkin === 'meme') {
+                ctx.fillStyle = '#ff8f00'; ctx.fillRect(x, y, width, height);
+                ctx.fillStyle = '#000'; ctx.font = 'bold 22px Arial'; ctx.fillText("😆", x + width/2 - 11, y + height/2);
+            } else {
+                let gradient = ctx.createLinearGradient(x, 0, x + width, 0);
+                gradient.addColorStop(0, '#2e4d10'); gradient.addColorStop(0.3, '#73bf2e');
+                gradient.addColorStop(0.5, '#bfff80'); gradient.addColorStop(1, '#1d3309');
+                ctx.fillStyle = gradient; ctx.fillRect(x, y, width, height);
+            }
+            ctx.strokeStyle = '#000'; ctx.lineWidth = 2.5; ctx.strokeRect(x, y, width, height);
         }
 
-        function draw() {
+        function drawEngineLoop() {
             if (!gameActive || inCountdown) return;
 
-            if (bgImg.complete && bgImg.src && !bgImg.src.includes('undefined')) {
+            const activeTheme = document.getElementById('sel-theme').value;
+            const bgUploaded = document.getElementById('inp-bg').files[0];
+
+            if (bgUploaded && bgImg.src) {
                 ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
             } else {
-                ctx.fillStyle = '#70c5ce';
+                ctx.fillStyle = aestheticsTheme[activeTheme] || '#70c5ce';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
 
-            bird.velocity += bird.gravity;
-            bird.y += bird.velocity;
+            // Canvas Transform Mapping Logic for Customizer Scale/Rotation Engine
+            bird.velocity += bird.gravity; bird.y += bird.velocity;
+            
+            ctx.save();
+            ctx.translate(bird.x + bird.width/2, bird.y + bird.height/2);
+            ctx.rotate((transformRotate * Math.PI) / 180);
+            ctx.scale(transformScale, transformScale);
+            ctx.drawImage(birdImg, -bird.width/2, -bird.height/2, bird.width, bird.height);
+            ctx.restore();
 
-            ctx.drawImage(birdImg, bird.x, bird.y, bird.width, bird.height);
+            if (bird.y + bird.height >= canvas.height || bird.y <= 0) { triggerGameOver(); }
 
-            if (bird.y + bird.height >= canvas.height || bird.y <= 0) {
-                gameOver();
-            }
-
-            if (frameCount % 110 === 0) {
-                let topPipeHeight = Math.floor(Math.random() * (canvas.height / 2)) + 50;
-                pipes.push({
-                    x: canvas.width,
-                    top: topPipeHeight,
-                    bottom: canvas.height - topPipeHeight - pipeGap,
-                    passed: false
-                });
+            if (frameCount % 105 === 0) {
+                let generatedHeight = Math.floor(Math.random() * (canvas.height / 2)) + 60;
+                pipes.push({ x: canvas.width, top: generatedHeight, bottom: canvas.height - generatedHeight - pipeGap, passed: false });
             }
 
             for (let i = pipes.length - 1; i >= 0; i--) {
-                pipes[i].x -= 2.5;
+                pipes[i].x -= 2.6;
 
-                drawRetroPipe(pipes[i].x, 0, pipeWidth, pipes[i].top, true);
-                drawRetroPipe(pipes[i].x, canvas.height - pipes[i].bottom, pipeWidth, pipes[i].bottom, false);
+                drawAssetPipe(pipes[i].x, 0, pipeWidth, pipes[i].top);
+                drawAssetPipe(pipes[i].x, canvas.height - pipes[i].bottom, pipeWidth, pipes[i].bottom);
 
-                if (bird.x < pipes[i].x + pipeWidth &&
-                    bird.x + bird.width > pipes[i].x &&
+                if (bird.x < pipes[i].x + pipeWidth && bird.x + bird.width > pipes[i].x &&
                     (bird.y < pipes[i].top || bird.y + bird.height > canvas.height - pipes[i].bottom)) {
-                    gameOver();
+                    triggerGameOver();
                 }
 
                 if (!pipes[i].passed && pipes[i].x + pipeWidth < bird.x) {
-                    score++;
-                    pipes[i].passed = true;
+                    score++; pipes[i].passed = true;
                 }
-
-                if (pipes[i].x + pipeWidth < 0) {
-                    pipes.splice(i, 1);
-                }
+                if (pipes[i].x + pipeWidth < 0) pipes.splice(i, 1);
             }
 
-            ctx.fillStyle = '#fff';
-            ctx.font = 'bold 35px sans-serif';
-            ctx.fillText(score, canvas.width / 2 - 10, 60);
+            ctx.fillStyle = '#fff'; ctx.font = 'bold 36px system-ui';
+            ctx.fillText(score, canvas.width / 2 - 10, 55);
 
-            frameCount++;
-            requestAnimationFrame(draw);
+            frameCount++; requestAnimationFrame(drawEngineLoop);
         }
 
-        function gameOver() {
+        function triggerGameOver() {
             gameActive = false;
-            if (bgMusic) bgMusic.pause();
-            
-            if (gameOverSound) {
-                gameOverSound.currentTime = 0;
-                gameOverSound.play().catch(e => {});
+            if (streamMusic) streamMusic.pause();
+
+            // Achievement Scale Logic System
+            let rank = "🐣 Beginner Bird";
+            if (score >= 10 && score < 25) rank = "🚀 Sky Rider";
+            else if (score >= 25 && score < 50) rank = "👑 Legend Flyer";
+            else if (score >= 50) rank = "💀 Touch Grass God";
+
+            document.getElementById('rank-badge').innerText = rank;
+            document.getElementById('final-score').innerText = `Score: ${score}`;
+            document.getElementById('roast-box').innerText = roastsList[Math.floor(Math.random() * roastsList.length)];
+
+            if(score >= 10) {
+                document.getElementById('go-banner').innerText = "🏆 HIGH SCORE";
+                confetti({ particleCount: 130, spread: 80, origin: { y: 0.6 } });
+            } else {
+                document.getElementById('go-banner').innerText = "Game Over";
             }
 
-            document.getElementById('final-score').innerText = `Final Score: ${score}`;
             document.getElementById('gameover-screen').style.display = 'flex';
         }
 
-        function stopGameOverSound() {
-            if (gameOverSound) {
-                gameOverSound.pause();
-                gameOverSound.currentTime = 0;
-            }
-        }
-
-        function goToHome() {
-            stopGameOverSound();
-            document.getElementById('game-container').style.display = 'none';
-            document.getElementById('gameover-screen').style.display = 'none';
-            document.getElementById('setup-screen').style.display = 'block';
-        }
-
-        // ADDED FIX: Core Jump Action logic
-        function jumpAction() {
+        function executeJump() {
             if (gameActive && !inCountdown) {
                 bird.velocity = bird.lift;
-                playPopSound();
+                playEngineSfx('jump');
             }
         }
 
-        document.getElementById('btn-restart').addEventListener('click', () => {
-            stopGameOverSound();
-            startWithCountdown();
+        // WhatsApp Viral Loop Generator System
+        document.getElementById('btn-share').addEventListener('click', () => {
+            const url = window.location.href;
+            const message = `Maine MyFace Flapper game me ${score} score kiya hai! 😎 Apni photo laga ke mera record tod ke dikha agar dum hai toh! 🔥\nYahan khelo: ${url}`;
+            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank');
         });
 
-        document.getElementById('btn-home').addEventListener('click', goToHome);
-        document.getElementById('btn-settings').addEventListener('click', goToHome); 
-
-        // Touch & Key listeners linked to jumpAction
-        window.addEventListener('keydown', (e) => { if (e.code === 'Space') jumpAction(); });
-        canvas.addEventListener('pointerdown', (e) => {
-            e.preventDefault();
-            jumpAction();
+        document.getElementById('btn-restart').addEventListener('click', triggerCountdownSequence);
+        document.getElementById('btn-back-menu').addEventListener('click', () => {
+            document.getElementById('game-container').style.display = 'none';
+            document.getElementById('main-menu').style.display = 'flex';
         });
+
+        window.addEventListener('keydown', (e) => { if (e.code === 'Space') executeJump(); });
+        canvas.addEventListener('pointerdown', (e) => { e.preventDefault(); executeJump(); });
     </script>
 </body>
 </html>
