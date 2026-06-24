@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium Custom Flappy Bird Pro</title>
+    <title>MyFace Flapper</title>
+    <!-- Firebase Script Libraries -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <style>
@@ -105,7 +106,6 @@
             background: #70c5ce;
             display: block;
         }
-        /* New Game Over Dashboard Dashboard */
         #gameover-screen {
             position: absolute;
             top: 0;
@@ -134,12 +134,12 @@
             margin-bottom: 30px;
         }
         .menu-btn {
-            width: 220px;  /* Button thoda bada kar diya */
-            padding: 16px; /* Touch area bada kar diya */
-            margin: 12px;  /* Buttons ke beech ki jagah badha di */
+            width: 220px;
+            padding: 16px;
+            margin: 12px;
             border: none;
             border-radius: 12px;
-            font-size: 18px; /* Font bada kar diya */
+            font-size: 18px;
             font-weight: bold;
             cursor: pointer;
             transition: 0.2s;
@@ -151,7 +151,6 @@
         
         .menu-btn:hover { transform: scale(1.05); }
 
-        /* Countdown Overlay Styling */
         #countdown-overlay {
             position: absolute;
             top: 0;
@@ -180,6 +179,7 @@
 </head>
 <body>
 
+    <!-- SETUP SCREEN FOR UPLOADS -->
     <div id="setup-screen">
         <h2>Flappy Customizer</h2>
         
@@ -206,13 +206,14 @@
         <button id="start-btn" class="btn-primary">Start Game 🚀</button>
     </div>
 
+    <!-- GAME CANVAS CONTAINER -->
     <div id="game-container">
         <div id="gameover-screen">
             <h1>Game Over</h1>
             <div id="final-score">Score: 0</div>
             <button class="menu-btn btn-restart" id="btn-restart">🔄 Restart</button>
             <button class="menu-btn btn-home" id="btn-home">🏠 Home</button>
-            <button class="menu-btn btn-settings" id="btn-settings" onclick="alert('Settings feature coming soon!')">⚙️ Settings</button>
+            <button class="menu-btn btn-settings" id="btn-settings">⚙ *Customizer*</button>
         </div>
 
         <div id="countdown-overlay">
@@ -231,7 +232,6 @@
         let bgMusic = null;
         let gameOverSound = null;
 
-        // Permanent Default Pop Jump Sound
         function playPopSound() {
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -249,11 +249,9 @@
             } catch (e) {}
         }
 
-        // Permanent Energetic Default "GO!" Sound
         function playGoSound() {
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                // Synthesize an upbeat arcade chime for GO!
                 const now = audioCtx.currentTime;
                 [523.25, 659.25, 783.99, 1046.50].forEach((freq, index) => {
                     const osc = audioCtx.createOscillator();
@@ -274,7 +272,7 @@
 
         let bird = { x: 50, y: 150, width: 40, height: 40, gravity: 0.4, lift: -8, velocity: 0 };
         let pipes = [];
-        let pipeWidth = 60;
+        let pipeWidth = 65; 
         let pipeGap = 160;
         let frameCount = 0;
         let score = 0;
@@ -339,10 +337,41 @@
             frameCount = 0;
         }
 
+        function drawRetroPipe(x, y, width, height, isTop) {
+            let pipeGrad = ctx.createLinearGradient(x, 0, x + width, 0);
+            pipeGrad.addColorStop(0.0, '#4b7d1a'); 
+            pipeGrad.addColorStop(0.2, '#73bf2e'); 
+            pipeGrad.addColorStop(0.5, '#bfff80'); 
+            pipeGrad.addColorStop(0.8, '#73bf2e'); 
+            pipeGrad.addColorStop(1.0, '#355912'); 
+
+            ctx.fillStyle = pipeGrad;
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2.5;
+            
+            ctx.fillRect(x, y, width, height);
+            ctx.strokeRect(x, y, width, height);
+
+            let capWidth = width + 10;
+            let capHeight = 28;
+            let capX = x - 5;
+            let capY = isTop ? (y + height - capHeight) : y;
+
+            let capGrad = ctx.createLinearGradient(capX, 0, capX + capWidth, 0);
+            capGrad.addColorStop(0.0, '#4b7d1a');
+            capGrad.addColorStop(0.2, '#73bf2e');
+            capGrad.addColorStop(0.5, '#bfff80');
+            capGrad.addColorStop(0.8, '#73bf2e');
+            capGrad.addColorStop(1.0, '#355912');
+
+            ctx.fillStyle = capGrad;
+            ctx.fillRect(capX, capY, capWidth, capHeight);
+            ctx.strokeRect(capX, capY, capWidth, capHeight);
+        }
+
         function draw() {
             if (!gameActive || inCountdown) return;
 
-            // Background
             if (bgImg.complete && bgImg.src && !bgImg.src.includes('undefined')) {
                 ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
             } else {
@@ -371,9 +400,9 @@
 
             for (let i = pipes.length - 1; i >= 0; i--) {
                 pipes[i].x -= 2.5;
-                ctx.fillStyle = '#73bf2e';
-                ctx.fillRect(pipes[i].x, 0, pipeWidth, pipes[i].top);
-                ctx.fillRect(pipes[i].x, canvas.height - pipes[i].bottom, pipeWidth, pipes[i].bottom);
+
+                drawRetroPipe(pipes[i].x, 0, pipeWidth, pipes[i].top, true);
+                drawRetroPipe(pipes[i].x, canvas.height - pipes[i].bottom, pipeWidth, pipes[i].bottom, false);
 
                 if (bird.x < pipes[i].x + pipeWidth &&
                     bird.x + bird.width > pipes[i].x &&
@@ -415,29 +444,24 @@
         function stopGameOverSound() {
             if (gameOverSound) {
                 gameOverSound.pause();
-                gameOverSound.currentTime = 0; // Completely stops the song
+                gameOverSound.currentTime = 0;
             }
         }
 
-        function jumpAction() {
-            if (gameActive && !inCountdown) {
-                bird.velocity = bird.lift;
-                playPopSound();
-            }
+        function goToHome() {
+            stopGameOverSound();
+            document.getElementById('game-container').style.display = 'none';
+            document.getElementById('gameover-screen').style.display = 'none';
+            document.getElementById('setup-screen').style.display = 'block';
         }
 
-        // Dashboard Navigation Listeners
         document.getElementById('btn-restart').addEventListener('click', () => {
             stopGameOverSound();
             startWithCountdown();
         });
 
-        document.getElementById('btn-home').addEventListener('click', () => {
-            stopGameOverSound();
-            document.getElementById('game-container').style.display = 'none';
-            document.getElementById('gameover-screen').style.display = 'none';
-            document.getElementById('setup-screen').style.display = 'block';
-        });
+        document.getElementById('btn-home').addEventListener('click', goToHome);
+        document.getElementById('btn-settings').addEventListener('click', goToHome); 
 
         window.addEventListener('keydown', (e) => { if (e.code === 'Space') jumpAction(); });
         canvas.addEventListener('pointerdown', (e) => {
