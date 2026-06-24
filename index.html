@@ -11,12 +11,12 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: system-ui, -apple-system, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             user-select: none;
             -webkit-user-select: none;
         }
         body {
-            background: #1e1e2f;
+            background: linear-gradient(135deg, #11111e 0%, #1e1e2f 100%);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -25,46 +25,67 @@
             overflow: hidden;
         }
         #setup-screen {
-            background: #2a2a40;
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            background: rgba(42, 42, 64, 0.95);
+            padding: 35px;
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
             text-align: center;
             width: 90%;
-            max-width: 360px;
+            max-width: 380px;
             z-index: 10;
+            border: 2px solid #4ec0ca;
+            backdrop-filter: blur(10px);
         }
-        h2 { margin-bottom: 20px; color: #4ec0ca; }
+        h2 { 
+            font-size: 26px;
+            margin-bottom: 25px; 
+            color: #4ec0ca;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(78,192,202,0.3);
+        }
         .input-group {
-            margin-bottom: 15px;
+            margin-bottom: 18px;
             text-align: left;
         }
         label {
             display: block;
-            margin-bottom: 5px;
-            font-size: 14px;
-            color: #ccc;
+            margin-bottom: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #b3b3cc;
         }
         input[type="file"] {
             width: 100%;
-            padding: 8px;
-            background: #1e1e2f;
-            border: 1px solid #444;
-            border-radius: 8px;
+            padding: 10px;
+            background: #161623;
+            border: 1px solid #3d3d5c;
+            border-radius: 10px;
             color: #fff;
             cursor: pointer;
+            font-size: 12px;
+            transition: 0.3s;
         }
-        button {
+        input[type="file"]:hover {
+            border-color: #4ec0ca;
+        }
+        .btn-primary {
             width: 100%;
-            padding: 12px;
-            background: #4ec0ca;
+            padding: 14px;
+            background: linear-gradient(90deg, #4ec0ca, #3daab3);
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
             color: #fff;
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
-            margin-top: 10px;
+            margin-top: 15px;
+            box-shadow: 0 5px 15px rgba(78,192,202,0.4);
+            transition: 0.2s ease;
+        }
+        .btn-primary:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(78,192,202,0.6);
         }
         #game-container {
             position: relative;
@@ -72,16 +93,88 @@
             max-width: 400px;
             height: 85vh;
             max-height: 600px;
-            border-radius: 12px;
+            border-radius: 16px;
             overflow: hidden;
             display: none;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+            border: 4px solid #2a2a40;
         }
         canvas {
             width: 100%;
             height: 100%;
             background: #70c5ce;
             display: block;
+        }
+        /* New Game Over Dashboard Dashboard */
+        #gameover-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(16, 16, 26, 0.85);
+            backdrop-filter: blur(6px);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 5;
+        }
+        #gameover-screen h1 {
+            color: #ff4d4d;
+            font-size: 36px;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 15px rgba(255,77,77,0.5);
+        }
+        #final-score {
+            font-size: 18px;
+            color: #fff;
+            margin-bottom: 30px;
+        }
+        .menu-btn {
+            width: 180px;
+            padding: 12px;
+            margin: 8px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #fff;
+        }
+        .btn-restart { background: #4ec0ca; box-shadow: 0 4px 10px rgba(78,192,202,0.3); }
+        .btn-home { background: #4e5cca; box-shadow: 0 4px 10px rgba(78,92,202,0.3); }
+        .btn-settings { background: #5c667a; box-shadow: 0 4px 10px rgba(92,102,122,0.3); }
+        
+        .menu-btn:hover { transform: scale(1.05); }
+
+        /* Countdown Overlay Styling */
+        #countdown-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.4);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 6;
+        }
+        #countdown-text {
+            font-size: 90px;
+            font-weight: 900;
+            color: #fff;
+            text-shadow: 0 0 20px rgba(255,255,255,0.6);
+            animation: popScale 0.8s ease infinite;
+        }
+        @keyframes popScale {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); opacity: 0; }
         }
     </style>
 </head>
@@ -110,10 +203,22 @@
             <input type="file" id="gameover-sound-input" accept="audio/*">
         </div>
 
-        <button id="start-btn">Start Game 🚀</button>
+        <button id="start-btn" class="btn-primary">Start Game 🚀</button>
     </div>
 
     <div id="game-container">
+        <div id="gameover-screen">
+            <h1>Game Over</h1>
+            <div id="final-score">Score: 0</div>
+            <button class="menu-btn btn-restart" id="btn-restart">🔄 Restart</button>
+            <button class="menu-btn btn-home" id="btn-home">🏠 Home</button>
+            <button class="menu-btn btn-settings" id="btn-settings" onclick="alert('Settings feature coming soon!')">⚙️ Settings</button>
+        </div>
+
+        <div id="countdown-overlay">
+            <div id="countdown-text">3</div>
+        </div>
+
         <canvas id="gameCanvas" width="400" height="600"></canvas>
     </div>
 
@@ -126,32 +231,45 @@
         let bgMusic = null;
         let gameOverSound = null;
 
-        // Permanent Default Pop Sound (Web Audio API generated)
+        // Permanent Default Pop Jump Sound
         function playPopSound() {
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
-                
                 osc.type = 'sine';
-                // Quick frequency slide up creates the "pop" feel
                 osc.frequency.setValueAtTime(400, audioCtx.currentTime);
                 osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.08);
-                
-                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
-                
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
-                
                 osc.start();
                 osc.stop(audioCtx.currentTime + 0.08);
-            } catch (e) {
-                console.log("Audio Context block bypass");
-            }
+            } catch (e) {}
         }
 
-        // Default yellow circle bird if nothing is uploaded
+        // Permanent Energetic Default "GO!" Sound
+        function playGoSound() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                // Synthesize an upbeat arcade chime for GO!
+                const now = audioCtx.currentTime;
+                [523.25, 659.25, 783.99, 1046.50].forEach((freq, index) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, now + index * 0.06);
+                    gain.gain.setValueAtTime(0.15, now + index * 0.06);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + index * 0.06 + 0.2);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now + index * 0.06);
+                    osc.stop(now + index * 0.06 + 0.2);
+                });
+            } catch (e) {}
+        }
+
         birdImg.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><circle cx="20" cy="20" r="18" fill="yellow"/></svg>';
 
         let bird = { x: 50, y: 150, width: 40, height: 40, gravity: 0.4, lift: -8, velocity: 0 };
@@ -161,6 +279,7 @@
         let frameCount = 0;
         let score = 0;
         let gameActive = false;
+        let inCountdown = false;
 
         document.getElementById('start-btn').addEventListener('click', () => {
             const birdFile = document.getElementById('bird-input').files[0];
@@ -175,16 +294,42 @@
                 bgMusic = new Audio(URL.createObjectURL(musicFile));
                 bgMusic.loop = true;
                 bgMusic.volume = 0.4;
-                bgMusic.play().catch(e => console.log("Audio waiting for user click"));
             }
 
             document.getElementById('setup-screen').style.display = 'none';
             document.getElementById('game-container').style.display = 'block';
             
-            gameActive = true;
-            resetGame();
-            draw();
+            startWithCountdown();
         });
+
+        function startWithCountdown() {
+            document.getElementById('gameover-screen').style.display = 'none';
+            const overlay = document.getElementById('countdown-overlay');
+            const text = document.getElementById('countdown-text');
+            overlay.style.display = 'flex';
+            inCountdown = true;
+            resetGame();
+
+            let count = 3;
+            text.innerText = count;
+
+            let interval = setInterval(() => {
+                count--;
+                if (count === 0) {
+                    text.innerText = "GO! 🚀";
+                    playGoSound();
+                    if (bgMusic) bgMusic.play().catch(e => {});
+                } else if (count < 0) {
+                    clearInterval(interval);
+                    overlay.style.display = 'none';
+                    inCountdown = false;
+                    gameActive = true;
+                    draw();
+                } else {
+                    text.innerText = count;
+                }
+            }, 900);
+        }
 
         function resetGame() {
             bird.y = 150;
@@ -195,7 +340,7 @@
         }
 
         function draw() {
-            if (!gameActive) return;
+            if (!gameActive || inCountdown) return;
 
             // Background
             if (bgImg.complete && bgImg.src && !bgImg.src.includes('undefined')) {
@@ -205,7 +350,6 @@
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
 
-            // Bird physics
             bird.velocity += bird.gravity;
             bird.y += bird.velocity;
 
@@ -215,7 +359,6 @@
                 gameOver();
             }
 
-            // Pipes
             if (frameCount % 110 === 0) {
                 let topPipeHeight = Math.floor(Math.random() * (canvas.height / 2)) + 50;
                 pipes.push({
@@ -228,7 +371,6 @@
 
             for (let i = pipes.length - 1; i >= 0; i--) {
                 pipes[i].x -= 2.5;
-
                 ctx.fillStyle = '#73bf2e';
                 ctx.fillRect(pipes[i].x, 0, pipeWidth, pipes[i].top);
                 ctx.fillRect(pipes[i].x, canvas.height - pipes[i].bottom, pipeWidth, pipes[i].bottom);
@@ -261,30 +403,42 @@
             gameActive = false;
             if (bgMusic) bgMusic.pause();
             
-            // Play Custom Game Over sound if uploaded
             if (gameOverSound) {
                 gameOverSound.currentTime = 0;
                 gameOverSound.play().catch(e => {});
             }
 
-            alert(`Game Over! Score: ${score}`);
-            document.getElementById('setup-screen').style.display = 'block';
-            document.getElementById('game-container').style.display = 'none';
+            document.getElementById('final-score').innerText = `Final Score: ${score}`;
+            document.getElementById('gameover-screen').style.display = 'flex';
         }
 
-        function jumpAction() {
-            if (gameActive) {
-                bird.velocity = bird.lift;
-                // Instant Permanent Pop Sound on Click/Tap
-                playPopSound();
-                
-                if (bgMusic && bgMusic.paused) {
-                    bgMusic.play().catch(e => {});
-                }
+        function stopGameOverSound() {
+            if (gameOverSound) {
+                gameOverSound.pause();
+                gameOverSound.currentTime = 0; // Completely stops the song
             }
         }
 
-        // Event Listeners for Controls
+        function jumpAction() {
+            if (gameActive && !inCountdown) {
+                bird.velocity = bird.lift;
+                playPopSound();
+            }
+        }
+
+        // Dashboard Navigation Listeners
+        document.getElementById('btn-restart').addEventListener('click', () => {
+            stopGameOverSound();
+            startWithCountdown();
+        });
+
+        document.getElementById('btn-home').addEventListener('click', () => {
+            stopGameOverSound();
+            document.getElementById('game-container').style.display = 'none';
+            document.getElementById('gameover-screen').style.display = 'none';
+            document.getElementById('setup-screen').style.display = 'block';
+        });
+
         window.addEventListener('keydown', (e) => { if (e.code === 'Space') jumpAction(); });
         canvas.addEventListener('pointerdown', (e) => {
             e.preventDefault();
